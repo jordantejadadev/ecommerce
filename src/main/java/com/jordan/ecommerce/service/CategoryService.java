@@ -1,5 +1,7 @@
 package com.jordan.ecommerce.service;
 
+import com.jordan.ecommerce.dto.category.CategoryRequest;
+import com.jordan.ecommerce.dto.category.CategoryResponse;
 import com.jordan.ecommerce.entity.Category;
 import com.jordan.ecommerce.repository.CategoryRepository;
 import lombok.RequiredArgsConstructor;
@@ -14,15 +16,34 @@ public class CategoryService {
 
     private final CategoryRepository categoryRepository;
 
-    public List<Category> getAllCategories() {
-        return categoryRepository.findAll();
+    public List<CategoryResponse> getAllCategories() {
+        return categoryRepository.findAll()
+                .stream()
+                .map(this::toResponse)
+                .toList();
     }
 
-    public Category getCategoryById(UUID id) {
-        return categoryRepository.findById(id).orElseThrow();
+    public CategoryResponse getCategoryById(UUID id) {
+        Category category = categoryRepository.findById(id).orElseThrow();
+
+        return toResponse(category);
     }
 
-    public Category createCategory(Category category) {
-        return categoryRepository.save(category);
+    public CategoryResponse createCategory(CategoryRequest request) {
+
+        Category category = Category.builder()
+                .name(request.name())
+                .build();
+
+        Category savedCategory = categoryRepository.save(category);
+
+        return toResponse(savedCategory);
+    }
+
+    public CategoryResponse toResponse(Category category) {
+        return new CategoryResponse(
+                category.getId(),
+                category.getName()
+        );
     }
 }
