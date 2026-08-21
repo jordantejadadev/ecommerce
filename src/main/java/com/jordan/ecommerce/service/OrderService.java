@@ -5,8 +5,10 @@ import com.jordan.ecommerce.dto.order.OrderItemResponse;
 import com.jordan.ecommerce.dto.order.OrderResponse;
 import com.jordan.ecommerce.dto.orderStatus.UpdateOrderStatusRequest;
 import com.jordan.ecommerce.entity.*;
+import com.jordan.ecommerce.exception.EmptyCartException;
 import com.jordan.ecommerce.exception.InsuficientStockException;
 import com.jordan.ecommerce.exception.InvalidOrderStatusException;
+import com.jordan.ecommerce.exception.ResourceNotFoundException;
 import com.jordan.ecommerce.repository.AddressRepository;
 import com.jordan.ecommerce.repository.CartRepository;
 import com.jordan.ecommerce.repository.OrderRepository;
@@ -37,11 +39,11 @@ public class OrderService {
 
         // 1. Buscar usuario
         User user = userRepository.findById(userId)
-                .orElseThrow(()-> new RuntimeException("Usuario no encontrado"));
+                .orElseThrow(()-> new ResourceNotFoundException("Usuario no encontrado"));
 
         // 2. Buscar dirección
-        Address address = addressRepository.findById(request.addressId())
-                .orElseThrow(()-> new RuntimeException("Dirección no encontrada"));
+        Address address = addressRepository.findByIdAndUserId(request.addressId(), userId)
+                .orElseThrow(()-> new ResourceNotFoundException("Dirección no encontrada"));
 
         // 3. Verificar que la dirección pertenece al usuario
         if (!address.getUser().getId().equals(userId)) {
@@ -50,11 +52,11 @@ public class OrderService {
 
         // 4. Buscar carrito
         Cart cart = cartRepository.findByUserId(userId)
-                .orElseThrow(()-> new RuntimeException("Carrito no encontrado"));
+                .orElseThrow(()-> new ResourceNotFoundException("Carrito no encontrado"));
 
         // 5. Verificar que el carrito no esté vacío
         if (cart.getItems().isEmpty()) {
-            throw new RuntimeException("El carrito está vacío");
+            throw new EmptyCartException("El carrito está vacío");
         }
 
         // 6. Crear Order
@@ -139,7 +141,7 @@ public class OrderService {
 
     public List<OrderResponse> getUserOrders(UUID userId) {
         if (!userRepository.existsById(userId)) {
-            throw new RuntimeException("Usuario no encontrado");
+            throw new ResourceNotFoundException("Usuario no encontrado");
         }
 
         return orderRepository.findByUserId(userId)
@@ -149,18 +151,24 @@ public class OrderService {
     }
 
     public OrderResponse updateOrderStatus(
+            UUID userId,
             UUID orderId,
             UpdateOrderStatusRequest request
     ) {
-        Order order = orderRepository.findById(orderId)
+        Order order = orderRepository
+                .findByIdAndUserId(orderId, userId)
                 .orElseThrow(() ->
-                        new RuntimeException("Orden no encontrada"));
+                        new ResourceNotFoundException(
+                                "Orden no encontrada"
+                        ));
 
         OrderStatus currentStatus = order.getStatus();
         OrderStatus newStatus = request.status();
 
         if(!isValidTransition(currentStatus, newStatus)) {
-            throw new InvalidOrderStatusException("Transición de estado no válida");
+            throw new InvalidOrderStatusException(
+                    "Transición de estado no válida"
+            );
         }
 
         order.setStatus(newStatus);
@@ -184,4 +192,47 @@ public class OrderService {
             case DELIVERED, CANCELLED -> false;
         };
     }
+
+    @Transactional
+    public OrderResponse cancelOrder(UUID userId,UUID orderId) {
+
+        // 1. Buscar la orden
+        Order order = orderRepository.findByIdAndUserId(orderId, userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Orden no encontrada"));
+
+        // 2. Verificar si se puede cancelar
+        if (order.getStatus() != OrderStatus.PENDING && order.getStatus() != OrderStatus.PAID) {
+            throw new InvalidOrderStatusException("La orden no puede ser cancelada");
+        }
+
+        // 3. Devolver stock
+        for (OrderItem item : order.getItems()) {
+
+            Product product = item.getProduct();
+
+            product.setStock(product.getStock() + item.getQuantity());
+        }
+
+        // 4. Cambiar estado
+        order.setStatus(OrderStatus.CANCELLED);
+
+        // 5. Guardar orden
+        Order savedOrder = orderRepository.save(order);
+
+        // 6. Convertir a response
+        return toResponse(savedOrder);
+
+    }
+
+    @Transactional
+    public OrderResponse getOrderById(UUID userId, UUID orderId) {
+
+        Order order = orderRepository
+                .findByIdAndUserId(orderId, userId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Orden no encontrada"));
+
+        return toResponse(order);
+    }
+
 }

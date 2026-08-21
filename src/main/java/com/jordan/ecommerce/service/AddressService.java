@@ -4,6 +4,7 @@ import com.jordan.ecommerce.dto.address.AddressResponse;
 import com.jordan.ecommerce.dto.address.CreateAddressRequest;
 import com.jordan.ecommerce.entity.Address;
 import com.jordan.ecommerce.entity.User;
+import com.jordan.ecommerce.exception.ResourceNotFoundException;
 import com.jordan.ecommerce.repository.AddressRepository;
 import com.jordan.ecommerce.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +27,7 @@ public class AddressService {
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() ->
-                        new RuntimeException("Usuario no encontrado"));
+                        new ResourceNotFoundException("Usuario no encontrado"));
 
         Address address = Address.builder()
                 .street(request.street())
@@ -45,7 +46,7 @@ public class AddressService {
     public List<AddressResponse> getUserAddresses(UUID userId) {
 
         if (!userRepository.existsById(userId)) {
-            throw new RuntimeException("Usuario no encontrado");
+            throw new ResourceNotFoundException("Usuario no encontrado");
         }
 
         return addressRepository.findByUserId(userId)

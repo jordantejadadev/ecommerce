@@ -4,6 +4,7 @@ import com.jordan.ecommerce.dto.product.ProductRequest;
 import com.jordan.ecommerce.dto.product.ProductResponse;
 import com.jordan.ecommerce.entity.Category;
 import com.jordan.ecommerce.entity.Product;
+import com.jordan.ecommerce.exception.ResourceNotFoundException;
 import com.jordan.ecommerce.repository.CategoryRepository;
 import com.jordan.ecommerce.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +28,8 @@ public class ProductService {
     }
 
     public ProductResponse getProductById(UUID id) {
-        Product product = productRepository.findById(id).orElseThrow();
+        Product product = productRepository.findById(id)
+                .orElseThrow(()-> new ResourceNotFoundException("Product not found"));
 
         return toResponse(product);
     }
@@ -35,7 +37,7 @@ public class ProductService {
     public ProductResponse createProduct(ProductRequest request) {
 
         Category category = categoryRepository.findById(request.categoryId())
-                .orElseThrow();
+                .orElseThrow(()-> new ResourceNotFoundException("Category not found"));
 
         Product product = Product.builder()
                 .name(request.name())

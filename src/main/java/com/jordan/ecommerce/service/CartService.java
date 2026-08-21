@@ -8,6 +8,7 @@ import com.jordan.ecommerce.entity.CartItem;
 import com.jordan.ecommerce.entity.Product;
 import com.jordan.ecommerce.entity.User;
 import com.jordan.ecommerce.exception.InsuficientStockException;
+import com.jordan.ecommerce.exception.ResourceNotFoundException;
 import com.jordan.ecommerce.repository.CartItemRepository;
 import com.jordan.ecommerce.repository.CartRepository;
 import com.jordan.ecommerce.repository.ProductRepository;
@@ -48,7 +49,7 @@ public class CartService {
                 .orElseGet(() -> createCart(userId));
 
         Product product = productRepository.findById(request.productId())
-                .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Producto no encontrado"));
 
         CartItem cartItem = cartItemRepository
                 .findByCartIdAndProductId(cart.getId(), product.getId())
@@ -87,7 +88,7 @@ public class CartService {
     private Cart createCart(UUID userId) {
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
 
         Cart cart = Cart.builder()
                 .user(user)
@@ -132,12 +133,12 @@ public class CartService {
             Integer quantity
     ) {
         Cart cart = cartRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("Carrito no encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Carrito no encontrado"));
 
         CartItem cartItem = cartItemRepository
                 .findByCartIdAndProductId(cart.getId(), productId)
                 .orElseThrow(() ->
-                        new RuntimeException("Producto no esta en el carrito"));
+                        new ResourceNotFoundException("Producto no esta en el carrito"));
 
         Product product = cartItem.getProduct();
 
@@ -159,11 +160,11 @@ public class CartService {
     ) {
         Cart cart = cartRepository.findByUserId(userId)
                 .orElseThrow(() ->
-                        new RuntimeException("Carrito no encontrado"));
+                        new ResourceNotFoundException("Carrito no encontrado"));
 
         CartItem cartItem = cartItemRepository
                 .findByCartIdAndProductId(cart.getId(), productId)
-                .orElseThrow(() -> new RuntimeException("Producto no esta en el carrito"));
+                .orElseThrow(() -> new ResourceNotFoundException("Producto no esta en el carrito"));
 
         cart.getItems().remove(cartItem);
 
@@ -174,7 +175,7 @@ public class CartService {
     public CartResponse clearCart(UUID userId) {
 
         Cart cart = cartRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("Carrito no encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Carrito no encontrado"));
 
         cart.getItems().clear();
 

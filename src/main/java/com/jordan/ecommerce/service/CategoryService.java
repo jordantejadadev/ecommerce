@@ -3,6 +3,7 @@ package com.jordan.ecommerce.service;
 import com.jordan.ecommerce.dto.category.CategoryRequest;
 import com.jordan.ecommerce.dto.category.CategoryResponse;
 import com.jordan.ecommerce.entity.Category;
+import com.jordan.ecommerce.exception.ResourceNotFoundException;
 import com.jordan.ecommerce.repository.CategoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,7 +25,8 @@ public class CategoryService {
     }
 
     public CategoryResponse getCategoryById(UUID id) {
-        Category category = categoryRepository.findById(id).orElseThrow();
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
 
         return toResponse(category);
     }

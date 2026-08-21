@@ -3,6 +3,7 @@ package com.jordan.ecommerce.service;
 import com.jordan.ecommerce.dto.user.UserResponse;
 import com.jordan.ecommerce.entity.Role;
 import com.jordan.ecommerce.entity.User;
+import com.jordan.ecommerce.exception.ResourceNotFoundException;
 import com.jordan.ecommerce.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -25,7 +26,7 @@ public class UserService {
     ) {
 
         if (userRepository.existsByEmail(email)) {
-            throw new RuntimeException("El email ya está registrado");
+            throw new ResourceNotFoundException("El email ya está registrado");
         }
 
         User user = User.builder()
@@ -44,7 +45,7 @@ public class UserService {
     public User getUserById(UUID id) {
 
         return userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
     }
 
     private UserResponse toResponse(User user) {

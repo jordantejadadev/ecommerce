@@ -47,11 +47,36 @@ public class OrderController {
 
     @PatchMapping("/{orderId}/status")
     public ResponseEntity<OrderResponse> updateOrderStatus(
+            @PathVariable UUID userId,
             @PathVariable UUID orderId,
             @Valid @RequestBody UpdateOrderStatusRequest request
             ) {
         return ResponseEntity.ok(
-                orderService.updateOrderStatus(orderId, request)
+                orderService.updateOrderStatus(
+                        userId,
+                        orderId,
+                        request
+                )
+        );
+    }
+
+    @PatchMapping("/{orderId}/cancel")
+    public ResponseEntity<OrderResponse> cancelOrder(
+            @PathVariable UUID userId,
+            @PathVariable UUID orderId
+    ) {
+        return ResponseEntity.ok(
+                orderService.cancelOrder(orderId, userId)
+        );
+    }
+
+    @GetMapping("/{orderId}")
+    public ResponseEntity<OrderResponse> getOrderById(
+            @PathVariable UUID userId,
+            @PathVariable UUID orderId
+    ) {
+        return ResponseEntity.ok(
+                orderService.getOrderById(userId, orderId)
         );
     }
 }
