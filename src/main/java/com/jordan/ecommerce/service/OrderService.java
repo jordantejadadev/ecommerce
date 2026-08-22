@@ -31,15 +31,14 @@ public class OrderService {
     private final UserRepository userRepository;
     private final AddressRepository addressRepository;
     private final CartRepository cartRepository;
+    private final AuthService authService;
 
     @Transactional
-    public OrderResponse createOrder(
-            UUID userId,
-            CreateOrderRequest request) {
+    public OrderResponse createOrder(CreateOrderRequest request) {
 
-        // 1. Buscar usuario
-        User user = userRepository.findById(userId)
-                .orElseThrow(()-> new ResourceNotFoundException("Usuario no encontrado"));
+        User user = authService.getAuthenticatedUser();
+
+        UUID userId = user.getId();
 
         // 2. Buscar dirección
         Address address = addressRepository.findByIdAndUserId(request.addressId(), userId)
@@ -139,10 +138,11 @@ public class OrderService {
         );
     }
 
-    public List<OrderResponse> getUserOrders(UUID userId) {
-        if (!userRepository.existsById(userId)) {
-            throw new ResourceNotFoundException("Usuario no encontrado");
-        }
+    public List<OrderResponse> getUserOrders() {
+
+        User user = authService.getAuthenticatedUser();
+
+        UUID userId = user.getId();
 
         return orderRepository.findByUserId(userId)
                 .stream()
@@ -151,10 +151,14 @@ public class OrderService {
     }
 
     public OrderResponse updateOrderStatus(
-            UUID userId,
             UUID orderId,
             UpdateOrderStatusRequest request
     ) {
+
+        User user = authService.getAuthenticatedUser();
+
+        UUID userId = user.getId();
+
         Order order = orderRepository
                 .findByIdAndUserId(orderId, userId)
                 .orElseThrow(() ->
@@ -194,7 +198,11 @@ public class OrderService {
     }
 
     @Transactional
-    public OrderResponse cancelOrder(UUID userId,UUID orderId) {
+    public OrderResponse cancelOrder(UUID orderId) {
+
+        User user = authService.getAuthenticatedUser();
+
+        UUID userId = user.getId();
 
         // 1. Buscar la orden
         Order order = orderRepository.findByIdAndUserId(orderId, userId)
@@ -225,7 +233,11 @@ public class OrderService {
     }
 
     @Transactional
-    public OrderResponse getOrderById(UUID userId, UUID orderId) {
+    public OrderResponse getOrderById(UUID orderId) {
+
+        User user = authService.getAuthenticatedUser();
+
+        UUID userId = user.getId();
 
         Order order = orderRepository
                 .findByIdAndUserId(orderId, userId)

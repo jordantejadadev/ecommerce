@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/users/{userId}/addresses")
+@RequestMapping("/api/addresses")
 @RequiredArgsConstructor
 public class AddressController {
 
@@ -21,13 +21,9 @@ public class AddressController {
 
     @PostMapping
     public ResponseEntity<AddressResponse> createAddress(
-            @PathVariable UUID userId,
             @Valid @RequestBody CreateAddressRequest request
             ) {
-        AddressResponse response = addressService.createAddress(
-                userId,
-                request
-        );
+        AddressResponse response = addressService.createAddress(request);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -35,11 +31,9 @@ public class AddressController {
     }
 
     @GetMapping
-    public ResponseEntity<List<AddressResponse>> getUserAddresses(
-            @PathVariable UUID userId
-    ) {
+    public ResponseEntity<List<AddressResponse>> getUserAddresses() {
         return ResponseEntity.ok(
-                addressService.getUserAddresses(userId)
+                addressService.getUserAddresses()
         );
     }
 }

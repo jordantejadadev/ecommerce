@@ -29,24 +29,29 @@ public class CartService {
     private final CartRepository cartRepository;
     private final CartItemRepository cartItemRepository;
     private final ProductRepository productRepository;
-    private final UserRepository userRepository;
+    private final AuthService authService;
 
     @Transactional
-    public CartResponse getCartByUserId(UUID userId) {
+    public CartResponse getCart() {
+
+        User user = authService.getAuthenticatedUser();
+        UUID userId = user.getId();
 
         Cart cart = cartRepository.findByUserId(userId)
-                .orElseGet(() -> createCart(userId));
+                .orElseGet(() -> createCart());
 
         return toResponse(cart);
     }
 
     @Transactional
-    public CartResponse addProductToCart(
-            UUID userId,
-            AddCartItemRequest request
-    ) {
+    public CartResponse addProductToCart(AddCartItemRequest request) {
+
+        User user = authService.getAuthenticatedUser();
+
+        UUID userId = user.getId();
+
         Cart cart = cartRepository.findByUserId(userId)
-                .orElseGet(() -> createCart(userId));
+                .orElseGet(() -> createCart());
 
         Product product = productRepository.findById(request.productId())
                 .orElseThrow(() -> new ResourceNotFoundException("Producto no encontrado"));
@@ -85,10 +90,9 @@ public class CartService {
         return toResponse(cart);
     }
 
-    private Cart createCart(UUID userId) {
+    private Cart createCart() {
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
+        User user = authService.getAuthenticatedUser();
 
         Cart cart = Cart.builder()
                 .user(user)
@@ -128,10 +132,14 @@ public class CartService {
 
     @Transactional
     public CartResponse updateCartItem(
-            UUID userId,
             UUID productId,
             Integer quantity
     ) {
+
+        User user = authService.getAuthenticatedUser();
+
+        UUID userId = user.getId();
+
         Cart cart = cartRepository.findByUserId(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Carrito no encontrado"));
 
@@ -155,9 +163,13 @@ public class CartService {
 
     @Transactional
     public CartResponse removeCartItem(
-            UUID userId,
             UUID productId
     ) {
+
+        User user = authService.getAuthenticatedUser();
+
+        UUID userId = user.getId();
+
         Cart cart = cartRepository.findByUserId(userId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Carrito no encontrado"));
@@ -172,7 +184,11 @@ public class CartService {
     }
 
     @Transactional
-    public CartResponse clearCart(UUID userId) {
+    public CartResponse clearCart() {
+
+        User user = authService.getAuthenticatedUser();
+
+        UUID userId = user.getId();
 
         Cart cart = cartRepository.findByUserId(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Carrito no encontrado"));

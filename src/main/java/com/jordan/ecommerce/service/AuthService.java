@@ -4,10 +4,11 @@ import com.jordan.ecommerce.dto.auth.LoginRequest;
 import com.jordan.ecommerce.dto.auth.LoginResponse;
 import com.jordan.ecommerce.entity.User;
 import com.jordan.ecommerce.exception.InvalidCredentialsException;
-import com.jordan.ecommerce.exception.ResourceNotFoundException;
 import com.jordan.ecommerce.repository.UserRepository;
 import com.jordan.ecommerce.security.JwtService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -38,5 +39,14 @@ public class AuthService {
                 user.getEmail(),
                 token
         );
+    }
+
+    public User getAuthenticatedUser() {
+
+        Authentication authentication = SecurityContextHolder
+                .getContext()
+                .getAuthentication();
+
+        return (User) authentication.getPrincipal();
     }
 }

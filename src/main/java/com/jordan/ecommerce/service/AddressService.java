@@ -18,16 +18,13 @@ import java.util.UUID;
 public class AddressService {
 
     private final AddressRepository addressRepository;
-    private final UserRepository userRepository;
+    private final AuthService authService;
 
     public AddressResponse createAddress(
-            UUID userId,
             CreateAddressRequest request
     ) {
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Usuario no encontrado"));
+        User user = authService.getAuthenticatedUser();
 
         Address address = Address.builder()
                 .street(request.street())
@@ -43,11 +40,11 @@ public class AddressService {
         return toResponse(savedAddress);
     }
 
-    public List<AddressResponse> getUserAddresses(UUID userId) {
+    public List<AddressResponse> getUserAddresses() {
 
-        if (!userRepository.existsById(userId)) {
-            throw new ResourceNotFoundException("Usuario no encontrado");
-        }
+        User user = authService.getAuthenticatedUser();
+
+        UUID userId = user.getId();
 
         return addressRepository.findByUserId(userId)
                 .stream()

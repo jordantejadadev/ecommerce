@@ -18,56 +18,48 @@ public class CartController {
 
     private final CartService cartService;
 
-    @GetMapping("/{userId}")
-    public ResponseEntity<CartResponse> getCart(
-            @PathVariable UUID userId
-            ) {
+    @GetMapping
+    public ResponseEntity<CartResponse> getCart() {
         return ResponseEntity.ok(
-                cartService.getCartByUserId(userId)
+                cartService.getCart()
         );
     }
 
-    @PostMapping("/{userId}/items")
+    @PostMapping("/items")
     public ResponseEntity<CartResponse> addProduct(
-            @PathVariable UUID userId,
             @Valid @RequestBody AddCartItemRequest request
             ) {
         return ResponseEntity.ok(
-                cartService.addProductToCart(userId, request)
+                cartService.addProductToCart(request)
         );
     }
 
-    @PutMapping("/{userId}/items/{productId}")
+    @PutMapping("/items/{productId}")
     public ResponseEntity<CartResponse> updateCartItem(
-            @PathVariable UUID userId,
             @PathVariable UUID productId,
             @Valid @RequestBody UpdateCartItemRequest request
             ) {
         return ResponseEntity.ok(
                 cartService.updateCartItem(
-                        userId,
                         productId,
                         request.quantity()
                 )
         );
     }
 
-    @DeleteMapping("/{userId}/items/{productId}")
+    @DeleteMapping("/items/{productId}")
     public ResponseEntity<CartResponse> removeCartItem(
-            @PathVariable UUID userId,
             @PathVariable UUID productId
     ) {
         return ResponseEntity.ok(
-                cartService.removeCartItem(userId, productId)
+                cartService.removeCartItem(productId)
         );
     }
 
-    @DeleteMapping("/{userId}")
-    public ResponseEntity<CartResponse> clearCart(
-            @PathVariable UUID userId
-    ) {
+    @DeleteMapping()
+    public ResponseEntity<CartResponse> clearCart() {
         return ResponseEntity.ok(
-                cartService.clearCart(userId)
+                cartService.clearCart()
         );
     }
 }

@@ -14,69 +14,52 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/users/{userId}/orders")
+@RequestMapping("/api/users")
 @RequiredArgsConstructor
 public class OrderController {
 
     private final OrderService orderService;
 
-    @PostMapping
+    @PostMapping("/orders")
     public ResponseEntity<OrderResponse> createOrder(
-            @PathVariable UUID userId,
             @Valid @RequestBody CreateOrderRequest request
             ) {
 
-        OrderResponse response = orderService.createOrder(
-                userId,
-                request
-        );
+        OrderResponse response = orderService.createOrder(request);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(response);
     }
 
-    @GetMapping
-    public ResponseEntity<List<OrderResponse>> getUserOrders(
-            @PathVariable UUID userId
-    ) {
+    @GetMapping("/orders")
+    public ResponseEntity<List<OrderResponse>> getUserOrders() {
         return ResponseEntity.ok(
-                orderService.getUserOrders(userId)
+                orderService.getUserOrders()
         );
     }
 
-    @PatchMapping("/{orderId}/status")
+    @PatchMapping("orders/{orderId}/status")
     public ResponseEntity<OrderResponse> updateOrderStatus(
-            @PathVariable UUID userId,
             @PathVariable UUID orderId,
             @Valid @RequestBody UpdateOrderStatusRequest request
             ) {
         return ResponseEntity.ok(
-                orderService.updateOrderStatus(
-                        userId,
-                        orderId,
-                        request
-                )
+                orderService.updateOrderStatus(orderId, request)
         );
     }
 
-    @PatchMapping("/{orderId}/cancel")
+    @PatchMapping("order/{orderId}/cancel")
     public ResponseEntity<OrderResponse> cancelOrder(
-            @PathVariable UUID userId,
             @PathVariable UUID orderId
     ) {
-        return ResponseEntity.ok(
-                orderService.cancelOrder(orderId, userId)
-        );
+        return ResponseEntity.ok(orderService.cancelOrder(orderId));
     }
 
-    @GetMapping("/{orderId}")
+    @GetMapping("/orders/{orderId}")
     public ResponseEntity<OrderResponse> getOrderById(
-            @PathVariable UUID userId,
             @PathVariable UUID orderId
     ) {
-        return ResponseEntity.ok(
-                orderService.getOrderById(userId, orderId)
-        );
+        return ResponseEntity.ok(orderService.getOrderById(orderId));
     }
 }
