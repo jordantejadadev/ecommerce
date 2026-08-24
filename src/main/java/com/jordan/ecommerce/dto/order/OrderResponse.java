@@ -9,7 +9,7 @@ import java.util.UUID;
 
 public record OrderResponse(
         UUID id,
-        UUID addressId,
+        OrderAddressResponse address,
         OrderStatus status,
         BigDecimal total,
         List<OrderItemResponse> items,

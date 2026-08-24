@@ -21,9 +21,9 @@ public class GlobalExceptionHandler {
                 .body(new ErrorResponse(400, ex.getMessage(), LocalDateTime.now()));
     }
 
-    @ExceptionHandler(InsuficientStockException.class)
+    @ExceptionHandler(InsufficientStockException.class)
     public ResponseEntity<ErrorResponse> handleInsuficientStockException(
-            InsuficientStockException ex
+            InsufficientStockException ex
     ) {
         return ResponseEntity
                 .badRequest()
@@ -81,6 +81,19 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.UNAUTHORIZED)
                 .body(new ErrorResponse(
                         401,
+                        ex.getMessage(),
+                        LocalDateTime.now()
+                ));
+    }
+
+    @ExceptionHandler(CategoryNotEmptyException.class)
+    public ResponseEntity<ErrorResponse> handleCategoryNotEmptyException(
+            CategoryNotEmptyException ex
+    ) {
+        return ResponseEntity
+                .badRequest()
+                .body(new ErrorResponse(
+                        400,
                         ex.getMessage(),
                         LocalDateTime.now()
                 ));

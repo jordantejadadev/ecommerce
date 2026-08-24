@@ -7,6 +7,7 @@ import com.jordan.ecommerce.entity.Product;
 import com.jordan.ecommerce.exception.ResourceNotFoundException;
 import com.jordan.ecommerce.repository.CategoryRepository;
 import com.jordan.ecommerce.repository.ProductRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -21,14 +22,14 @@ public class ProductService {
     private final CategoryRepository categoryRepository;
 
     public List<ProductResponse> getAllProducts() {
-        return productRepository.findAll()
+        return productRepository.findAllByActiveTrue()
                 .stream()
                 .map(this::toResponse)
                 .toList();
     }
 
     public ProductResponse getProductById(UUID id) {
-        Product product = productRepository.findById(id)
+        Product product = productRepository.findByIdAndActiveTrue(id)
                 .orElseThrow(()-> new ResourceNotFoundException("Product not found"));
 
         return toResponse(product);
@@ -61,7 +62,44 @@ public class ProductService {
                 product.getPrice(),
                 product.getStock(),
                 product.getImageUrl(),
-                product.getCategory().getId()
+                product.getCategory().getId(),
+                product.getActive()
         );
+    }
+
+    @Transactional
+    public ProductResponse updateProduct(
+            UUID id,
+            ProductRequest request
+    ) {
+
+        Product product = productRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Product not found"));
+
+        Category category = categoryRepository.findById(request.categoryId())
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Category not found"));
+
+        product.setName(request.name());
+        product.setDescription(request.description());
+        product.setPrice(request.price());
+        product.setStock(request.stock());
+        product.setImageUrl(request.imageUrl());
+        product.setCategory(category);
+
+        Product savedProduct = productRepository.save(product);
+
+        return toResponse(savedProduct);
+    }
+
+    @Transactional
+    public void deleteProduct(UUID id) {
+
+        Product product = productRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Product not found"));
+
+        product.setActive(false);
     }
 }

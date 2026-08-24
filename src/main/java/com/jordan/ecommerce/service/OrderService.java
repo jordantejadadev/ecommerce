@@ -1,25 +1,24 @@
 package com.jordan.ecommerce.service;
 
 import com.jordan.ecommerce.dto.order.CreateOrderRequest;
+import com.jordan.ecommerce.dto.order.OrderAddressResponse;
 import com.jordan.ecommerce.dto.order.OrderItemResponse;
 import com.jordan.ecommerce.dto.order.OrderResponse;
 import com.jordan.ecommerce.dto.orderStatus.UpdateOrderStatusRequest;
 import com.jordan.ecommerce.entity.*;
 import com.jordan.ecommerce.exception.EmptyCartException;
-import com.jordan.ecommerce.exception.InsuficientStockException;
+import com.jordan.ecommerce.exception.InsufficientStockException;
 import com.jordan.ecommerce.exception.InvalidOrderStatusException;
 import com.jordan.ecommerce.exception.ResourceNotFoundException;
 import com.jordan.ecommerce.repository.AddressRepository;
 import com.jordan.ecommerce.repository.CartRepository;
 import com.jordan.ecommerce.repository.OrderRepository;
-import com.jordan.ecommerce.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -28,7 +27,6 @@ import java.util.UUID;
 public class OrderService {
 
     private final OrderRepository orderRepository;
-    private final UserRepository userRepository;
     private final AddressRepository addressRepository;
     private final CartRepository cartRepository;
     private final AuthService authService;
@@ -44,38 +42,46 @@ public class OrderService {
         Address address = addressRepository.findByIdAndUserId(request.addressId(), userId)
                 .orElseThrow(()-> new ResourceNotFoundException("Dirección no encontrada"));
 
-        // 3. Verificar que la dirección pertenece al usuario
-        if (!address.getUser().getId().equals(userId)) {
-            throw new RuntimeException("La dirección no pertenece al usuario");
-        }
-
-        // 4. Buscar carrito
+        // 3. Buscar carrito
         Cart cart = cartRepository.findByUserId(userId)
                 .orElseThrow(()-> new ResourceNotFoundException("Carrito no encontrado"));
 
-        // 5. Verificar que el carrito no esté vacío
+        // 4. Verificar que el carrito no esté vacío
         if (cart.getItems().isEmpty()) {
             throw new EmptyCartException("El carrito está vacío");
         }
 
-        // 6. Crear Order
-        Order order = Order.builder()
-                .user(user)
-                .address(address)
-                .status(OrderStatus.PENDING)
-                .createdAt(LocalDateTime.now())
-                .items(new ArrayList<>())
+        OrderAddress orderAddress = OrderAddress.builder()
+                .street(address.getStreet())
+                .city(address.getCity())
+                .state(address.getState())
+                .postalCode(address.getPostalCode())
+                .country(address.getCountry())
                 .build();
 
-        // 7. Crear OrderItems y calcular total
+        // 5. Crear Order
+        Order order = Order.builder()
+                .user(user)
+                .address(orderAddress)
+                .status(OrderStatus.PENDING)
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        // 6. Crear OrderItems y calcular total
         BigDecimal total = BigDecimal.ZERO;
 
         for (CartItem cartItem : cart.getItems()) {
 
             Product product = cartItem.getProduct();
 
+            if (!product.getActive()) {
+                throw new ResourceNotFoundException(
+                        "Producto no disponible: " + product.getName()
+                );
+            }
+
             if (cartItem.getQuantity() > product.getStock()) {
-                throw new InsuficientStockException("Stock insuficiente para el producto: " + product.getName());
+                throw new InsufficientStockException("Stock insuficiente para el producto: " + product.getName());
             }
 
             BigDecimal unitPrice = product.getPrice();
@@ -98,13 +104,13 @@ public class OrderService {
             total = total.add(subtotal);
         }
 
-        // 8. Guardar total
+        // 7. Guardar total
         order.setTotal(total);
 
-        // 9. Guardar Order
+        // 8. Guardar Order
         Order savedOrder = orderRepository.save(order);
 
-        // 10. Vaciar carrito
+        // 9. Vaciar carrito
         cart.getItems().clear();
 
         return toResponse(savedOrder);
@@ -128,9 +134,17 @@ public class OrderService {
                 })
                 .toList();
 
+        OrderAddressResponse address = new OrderAddressResponse(
+                order.getAddress().getStreet(),
+                order.getAddress().getCity(),
+                order.getAddress().getState(),
+                order.getAddress().getPostalCode(),
+                order.getAddress().getCountry()
+        );
+
         return new OrderResponse(
                 order.getId(),
-                order.getAddress().getId(),
+                address,
                 order.getStatus(),
                 order.getTotal(),
                 items,

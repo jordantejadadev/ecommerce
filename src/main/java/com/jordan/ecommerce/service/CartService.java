@@ -7,18 +7,16 @@ import com.jordan.ecommerce.entity.Cart;
 import com.jordan.ecommerce.entity.CartItem;
 import com.jordan.ecommerce.entity.Product;
 import com.jordan.ecommerce.entity.User;
-import com.jordan.ecommerce.exception.InsuficientStockException;
+import com.jordan.ecommerce.exception.InsufficientStockException;
 import com.jordan.ecommerce.exception.ResourceNotFoundException;
 import com.jordan.ecommerce.repository.CartItemRepository;
 import com.jordan.ecommerce.repository.CartRepository;
 import com.jordan.ecommerce.repository.ProductRepository;
-import com.jordan.ecommerce.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -53,7 +51,7 @@ public class CartService {
         Cart cart = cartRepository.findByUserId(userId)
                 .orElseGet(() -> createCart());
 
-        Product product = productRepository.findById(request.productId())
+        Product product = productRepository.findByIdAndActiveTrue(request.productId())
                 .orElseThrow(() -> new ResourceNotFoundException("Producto no encontrado"));
 
         CartItem cartItem = cartItemRepository
@@ -65,7 +63,7 @@ public class CartService {
             int newQuantity = cartItem.getQuantity() + request.quantity();
 
             if (newQuantity > product.getStock()) {
-                throw new InsuficientStockException("Stock insuficiente");
+                throw new InsufficientStockException("Stock insuficiente");
             }
 
             cartItem.setQuantity(newQuantity);
@@ -73,7 +71,7 @@ public class CartService {
         } else {
 
             if (request.quantity() > product.getStock()) {
-                throw new InsuficientStockException("Stock insuficiente");
+                throw new InsufficientStockException("Stock insuficiente");
             }
 
             cartItem = CartItem.builder()
@@ -151,7 +149,7 @@ public class CartService {
         Product product = cartItem.getProduct();
 
         if (quantity > product.getStock()) {
-            throw new RuntimeException("Stock insuficiente");
+            throw new InsufficientStockException("Stock insuficiente");
         }
 
         cartItem.setQuantity(quantity);

@@ -10,5 +10,6 @@ public record ProductResponse(
         BigDecimal price,
         Integer stock,
         String imageUrl,
-        UUID categoryId
+        UUID categoryId,
+        Boolean active
 ) { }

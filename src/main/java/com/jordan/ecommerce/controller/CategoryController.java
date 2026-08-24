@@ -38,4 +38,23 @@ public class CategoryController {
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<CategoryResponse> updateCategory(
+            @PathVariable UUID id,
+            @Valid @RequestBody CategoryRequest request
+    ) {
+        return ResponseEntity.ok(
+                categoryService.updateCategory(id, request)
+        );
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteCategory(
+            @PathVariable UUID id
+    ) {
+        categoryService.deleteCategory(id);
+
+        return ResponseEntity.noContent().build();
+    }
 }

@@ -7,6 +7,7 @@ import com.jordan.ecommerce.entity.User;
 import com.jordan.ecommerce.exception.ResourceNotFoundException;
 import com.jordan.ecommerce.repository.AddressRepository;
 import com.jordan.ecommerce.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -20,6 +21,7 @@ public class AddressService {
     private final AddressRepository addressRepository;
     private final AuthService authService;
 
+    @Transactional
     public AddressResponse createAddress(
             CreateAddressRequest request
     ) {
@@ -46,7 +48,7 @@ public class AddressService {
 
         UUID userId = user.getId();
 
-        return addressRepository.findByUserId(userId)
+        return addressRepository.findAllByUserId(userId)
                 .stream()
                 .map(this::toResponse)
                 .toList();
