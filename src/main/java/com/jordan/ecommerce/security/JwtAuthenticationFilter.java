@@ -2,6 +2,7 @@ package com.jordan.ecommerce.security;
 
 import com.jordan.ecommerce.entity.User;
 import com.jordan.ecommerce.repository.UserRepository;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -39,27 +40,32 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String token = authHeader.substring(7);
 
-        String userId = jwtService.extractUserId(token);
+        try {
 
-        User user = userRepository.findById(UUID.fromString(userId))
-                .orElse(null);
+            String userId = jwtService.extractUserId(token);
 
-        if (user != null) {
+            User user = userRepository.findById(UUID.fromString(userId))
+                    .orElse(null);
 
-            UsernamePasswordAuthenticationToken authentication =
-                    new UsernamePasswordAuthenticationToken(
-                            user,
-                            null,
-                            List.of(
-                                    new SimpleGrantedAuthority(
-                                            "ROLE_" + user.getRole().name()
-                                    )
-                            )
-                    );
+            if (user != null) {
 
-            SecurityContextHolder
-                    .getContext()
-                    .setAuthentication(authentication);
+                UsernamePasswordAuthenticationToken authentication =
+                        new UsernamePasswordAuthenticationToken(
+                                user,
+                                null,
+                                List.of(
+                                        new SimpleGrantedAuthority(
+                                                "ROLE_" + user.getRole().name()
+                                        )
+                                )
+                        );
+
+                SecurityContextHolder
+                        .getContext()
+                        .setAuthentication(authentication);
+            }
+        } catch (JwtException | IllegalArgumentException ex) {
+            SecurityContextHolder.clearContext();
         }
 
         filterChain.doFilter(request, response);

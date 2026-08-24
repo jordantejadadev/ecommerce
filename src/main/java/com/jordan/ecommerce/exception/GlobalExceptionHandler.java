@@ -2,6 +2,7 @@ package com.jordan.ecommerce.exception;
 
 import com.jordan.ecommerce.dto.error.ErrorResponse;
 import org.hibernate.dialect.lock.OptimisticEntityLockException;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -34,8 +35,8 @@ public class GlobalExceptionHandler {
                 ));
     }
 
-    @ExceptionHandler(OptimisticEntityLockException.class)
-    public ResponseEntity<ErrorResponse> handleObjectOptimisticLockingFailure(
+    @ExceptionHandler(OptimisticLockingFailureException.class)
+    public ResponseEntity<ErrorResponse> handleOptimisticLockingFailure(
             OptimisticEntityLockException ex
     ) {
         return ResponseEntity
@@ -95,6 +96,17 @@ public class GlobalExceptionHandler {
                 .body(new ErrorResponse(
                         400,
                         ex.getMessage(),
+                        LocalDateTime.now()
+                ));
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new ErrorResponse(
+                        500,
+                        "Ocurrió un error inesperado, Intenta de nuevo.",
                         LocalDateTime.now()
                 ));
     }
