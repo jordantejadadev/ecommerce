@@ -37,6 +37,7 @@ public class AuthService {
                 user.getId(),
                 user.getName(),
                 user.getEmail(),
+                user.getRole().name(),
                 token
         );
     }
@@ -46,6 +47,10 @@ public class AuthService {
         Authentication authentication = SecurityContextHolder
                 .getContext()
                 .getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new RuntimeException("No hay usuario autenticado");
+        }
 
         return (User) authentication.getPrincipal();
     }

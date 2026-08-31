@@ -49,7 +49,7 @@ public class OrderController {
         );
     }
 
-    @PatchMapping("order/{orderId}/cancel")
+    @PatchMapping("orders/{orderId}/cancel")
     public ResponseEntity<OrderResponse> cancelOrder(
             @PathVariable UUID orderId
     ) {
