@@ -2,6 +2,8 @@ package com.jordan.ecommerce.controller;
 
 import com.jordan.ecommerce.dto.auth.LoginRequest;
 import com.jordan.ecommerce.dto.auth.LoginResponse;
+import com.jordan.ecommerce.dto.refresh.RefreshRequest;
+import com.jordan.ecommerce.dto.refresh.RefreshResponse;
 import com.jordan.ecommerce.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -24,5 +26,10 @@ public class AuthController {
         return ResponseEntity.ok(
                 authService.login(request)
         );
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<RefreshResponse> refresh(@RequestBody RefreshRequest request) {
+        return ResponseEntity.ok(authService.refresh(request));
     }
 }
