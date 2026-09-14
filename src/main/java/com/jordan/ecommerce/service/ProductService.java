@@ -9,9 +9,10 @@ import com.jordan.ecommerce.repository.CategoryRepository;
 import com.jordan.ecommerce.repository.ProductRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -21,11 +22,15 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
 
-    public List<ProductResponse> getAllProducts() {
-        return productRepository.findAllByActiveTrue()
-                .stream()
-                .map(this::toResponse)
-                .toList();
+//    public List<ProductResponse> getAllProducts() {
+//        return productRepository.findAllByActiveTrue()
+//                .stream()
+//                .map(this::toResponse)
+//                .toList();
+//    }
+
+    public Page<ProductResponse> getAllProducts(Pageable pageable) {
+        return productRepository.findAllByActiveTrue(pageable).map(this::toResponse);
     }
 
     public ProductResponse getProductById(UUID id) {

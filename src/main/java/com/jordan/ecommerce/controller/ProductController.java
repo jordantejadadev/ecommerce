@@ -5,6 +5,9 @@ import com.jordan.ecommerce.dto.product.ProductResponse;
 import com.jordan.ecommerce.service.ProductService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,8 +30,8 @@ public class ProductController {
     private final Cloudinary cloudinary;
 
     @GetMapping
-    public ResponseEntity<List<ProductResponse>> getAllProducts() {
-        return ResponseEntity.ok(productService.getAllProducts());
+    public ResponseEntity<Page<ProductResponse>> getAllProducts(@PageableDefault(page = 0, size = 1, sort = "name") Pageable pageable) {
+        return ResponseEntity.ok(productService.getAllProducts(pageable));
     }
 
     @GetMapping("/{id}")
