@@ -39,15 +39,15 @@ public class OrderController {
         );
     }
 
-    @PatchMapping("orders/{orderId}/status")
-    public ResponseEntity<OrderResponse> updateOrderStatus(
-            @PathVariable UUID orderId,
-            @Valid @RequestBody UpdateOrderStatusRequest request
-            ) {
-        return ResponseEntity.ok(
-                orderService.updateOrderStatus(orderId, request)
-        );
-    }
+//    @PatchMapping("orders/{orderId}/status")
+//    public ResponseEntity<OrderResponse> updateOrderStatus(
+//            @PathVariable UUID orderId,
+//            @Valid @RequestBody UpdateOrderStatusRequest request
+//            ) {
+//        return ResponseEntity.ok(
+//                orderService.updateOrderStatus(orderId, request)
+//        );
+//    }
 
     @PatchMapping("orders/{orderId}/cancel")
     public ResponseEntity<OrderResponse> cancelOrder(

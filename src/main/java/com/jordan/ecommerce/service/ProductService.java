@@ -4,6 +4,7 @@ import com.jordan.ecommerce.dto.product.ProductRequest;
 import com.jordan.ecommerce.dto.product.ProductResponse;
 import com.jordan.ecommerce.entity.Category;
 import com.jordan.ecommerce.entity.Product;
+import com.jordan.ecommerce.entity.ProductImage;
 import com.jordan.ecommerce.exception.ResourceNotFoundException;
 import com.jordan.ecommerce.repository.CategoryRepository;
 import com.jordan.ecommerce.repository.ProductRepository;
@@ -13,6 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -22,15 +24,13 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
 
-//    public List<ProductResponse> getAllProducts() {
-//        return productRepository.findAllByActiveTrue()
-//                .stream()
-//                .map(this::toResponse)
-//                .toList();
-//    }
+    public Page<ProductResponse> getAllProducts(Pageable pageable, UUID categoryId) {
 
-    public Page<ProductResponse> getAllProducts(Pageable pageable) {
-        return productRepository.findAllByActiveTrue(pageable).map(this::toResponse);
+        Page<Product> products = (categoryId != null)
+                ? productRepository.findAllByActiveTrueAndCategoryId(categoryId, pageable)
+                : productRepository.findAllByActiveTrue(pageable);
+
+        return products.map(this::toResponse);
     }
 
     public ProductResponse getProductById(UUID id) {
@@ -43,7 +43,7 @@ public class ProductService {
     public ProductResponse createProduct(ProductRequest request) {
 
         Category category = categoryRepository.findById(request.categoryId())
-                .orElseThrow(()-> new ResourceNotFoundException("Category not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
 
         Product product = Product.builder()
                 .name(request.name())
@@ -54,22 +54,11 @@ public class ProductService {
                 .category(category)
                 .build();
 
+        addImages(product, request.images()); // <-- nuevo
+
         Product savedProduct = productRepository.save(product);
 
         return toResponse(savedProduct);
-    }
-
-    private ProductResponse toResponse(Product product) {
-        return new ProductResponse(
-                product.getId(),
-                product.getName(),
-                product.getDescription(),
-                product.getPrice(),
-                product.getStock(),
-                product.getImageUrl(),
-                product.getCategory().getId(),
-                product.getActive()
-        );
     }
 
     @Transactional
@@ -93,9 +82,43 @@ public class ProductService {
         product.setImageUrl(request.imageUrl());
         product.setCategory(category);
 
+        product.getImages().clear();
+        addImages(product, request.images());
+
         Product savedProduct = productRepository.save(product);
 
         return toResponse(savedProduct);
+    }
+
+    private void addImages(Product product, List<String> imageUrls) {
+        if (imageUrls == null) return;
+
+        imageUrls.forEach(url -> {
+            ProductImage image = ProductImage.builder()
+                    .url(url)
+                    .product(product)
+                    .build();
+            product.getImages().add(image);
+        });
+    }
+
+    private ProductResponse toResponse(Product product) {
+        List<String> imageUrls = product.getImages()
+                .stream()
+                .map(ProductImage::getUrl)
+                .toList();
+
+        return new ProductResponse(
+                product.getId(),
+                product.getName(),
+                product.getDescription(),
+                product.getPrice(),
+                product.getStock(),
+                product.getImageUrl(),
+                imageUrls,
+                product.getCategory().getId(),
+                product.getActive()
+        );
     }
 
     @Transactional

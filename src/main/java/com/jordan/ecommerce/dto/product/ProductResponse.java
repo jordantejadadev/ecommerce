@@ -1,6 +1,7 @@
 package com.jordan.ecommerce.dto.product;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
 
 public record ProductResponse(
@@ -10,6 +11,7 @@ public record ProductResponse(
         BigDecimal price,
         Integer stock,
         String imageUrl,
+        List<String> images,
         UUID categoryId,
         Boolean active
 ) { }

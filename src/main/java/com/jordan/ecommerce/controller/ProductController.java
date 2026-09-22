@@ -30,8 +30,11 @@ public class ProductController {
     private final Cloudinary cloudinary;
 
     @GetMapping
-    public ResponseEntity<Page<ProductResponse>> getAllProducts(@PageableDefault(page = 0, size = 1, sort = "name") Pageable pageable) {
-        return ResponseEntity.ok(productService.getAllProducts(pageable));
+    public ResponseEntity<Page<ProductResponse>> getAllProducts(
+            @PageableDefault(page = 0, size = 12, sort = "name") Pageable pageable,
+            @RequestParam(required = false) UUID categoryId
+    ) {
+        return ResponseEntity.ok(productService.getAllProducts(pageable, categoryId));
     }
 
     @GetMapping("/{id}")

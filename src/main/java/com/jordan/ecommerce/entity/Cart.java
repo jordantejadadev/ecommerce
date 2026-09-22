@@ -2,7 +2,9 @@ package com.jordan.ecommerce.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -29,6 +31,7 @@ public class Cart {
             cascade = CascadeType.ALL,
             orphanRemoval = true
     )
+    @OrderBy("createdAt ASC")
     @Builder.Default
     private List<CartItem> items = new ArrayList<>();
 }

@@ -1,9 +1,6 @@
 package com.jordan.ecommerce.service;
 
-import com.jordan.ecommerce.dto.order.CreateOrderRequest;
-import com.jordan.ecommerce.dto.order.OrderAddressResponse;
-import com.jordan.ecommerce.dto.order.OrderItemResponse;
-import com.jordan.ecommerce.dto.order.OrderResponse;
+import com.jordan.ecommerce.dto.order.*;
 import com.jordan.ecommerce.dto.orderStatus.UpdateOrderStatusRequest;
 import com.jordan.ecommerce.entity.*;
 import com.jordan.ecommerce.exception.EmptyCartException;
@@ -164,37 +161,37 @@ public class OrderService {
                 .toList();
     }
 
-    public OrderResponse updateOrderStatus(
-            UUID orderId,
-            UpdateOrderStatusRequest request
-    ) {
-
-        User user = authService.getAuthenticatedUser();
-
-        UUID userId = user.getId();
-
-        Order order = orderRepository
-                .findByIdAndUserId(orderId, userId)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "Orden no encontrada"
-                        ));
-
-        OrderStatus currentStatus = order.getStatus();
-        OrderStatus newStatus = request.status();
-
-        if(!isValidTransition(currentStatus, newStatus)) {
-            throw new InvalidOrderStatusException(
-                    "Transición de estado no válida"
-            );
-        }
-
-        order.setStatus(newStatus);
-
-        Order savedOrder = orderRepository.save(order);
-
-        return toResponse(savedOrder);
-    }
+//    public OrderResponse updateOrderStatus(
+//            UUID orderId,
+//            UpdateOrderStatusRequest request
+//    ) {
+//
+//        User user = authService.getAuthenticatedUser();
+//
+//        UUID userId = user.getId();
+//
+//        Order order = orderRepository
+//                .findByIdAndUserId(orderId, userId)
+//                .orElseThrow(() ->
+//                        new ResourceNotFoundException(
+//                                "Orden no encontrada"
+//                        ));
+//
+//        OrderStatus currentStatus = order.getStatus();
+//        OrderStatus newStatus = request.status();
+//
+//        if(!isValidTransition(currentStatus, newStatus)) {
+//            throw new InvalidOrderStatusException(
+//                    "Transición de estado no válida"
+//            );
+//        }
+//
+//        order.setStatus(newStatus);
+//
+//        Order savedOrder = orderRepository.save(order);
+//
+//        return toResponse(savedOrder);
+//    }
 
     private boolean isValidTransition(
             OrderStatus currentStatus,
@@ -259,6 +256,73 @@ public class OrderService {
                         new ResourceNotFoundException("Orden no encontrada"));
 
         return toResponse(order);
+    }
+
+    public List<AdminOrderResponse> getAllOrders() {
+        return orderRepository.findAll()
+                .stream()
+                .map(this::toAdminResponse)
+                .toList();
+    }
+
+    @Transactional
+    public AdminOrderResponse updateOrderStatusAsAdmin(
+            UUID orderId,
+            UpdateOrderStatusRequest request
+    ) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(()-> new ResourceNotFoundException("Orden no encontrada"));
+
+        OrderStatus currentStatus = order.getStatus();
+        OrderStatus newStatus = request.status();
+
+        if (!isValidTransition(currentStatus, newStatus)) {
+            throw new InvalidOrderStatusException("Transición de estado no válida");
+        }
+
+        order.setStatus(newStatus);
+
+        Order savedOrder = orderRepository.save(order);
+
+        return toAdminResponse(savedOrder);
+    }
+
+    private AdminOrderResponse toAdminResponse(Order order) {
+
+        List<OrderItemResponse> items = order.getItems()
+                .stream()
+                .map(item -> {
+                    BigDecimal subtotal = item.getUnitPrice()
+                            .multiply(BigDecimal.valueOf(item.getQuantity()));
+
+                    return new OrderItemResponse(
+                            item.getProduct().getId(),
+                            item.getProduct().getName(),
+                            item.getUnitPrice(),
+                            item.getQuantity(),
+                            subtotal
+                    );
+                })
+                .toList();
+
+        OrderAddressResponse address = new OrderAddressResponse(
+                order.getAddress().getStreet(),
+                order.getAddress().getCity(),
+                order.getAddress().getState(),
+                order.getAddress().getPostalCode(),
+                order.getAddress().getCountry()
+        );
+
+        return new AdminOrderResponse(
+                order.getId(),
+                order.getUser().getName(),
+                order.getUser().getEmail(),
+                address,
+                order.getStatus(),
+                order.getTotal(),
+                items,
+                order.getCreatedAt()
+        );
     }
 
 }

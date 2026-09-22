@@ -113,6 +113,7 @@ public class CartService {
                             item.getProduct().getName(),
                             item.getProduct().getPrice(),
                             item.getQuantity(),
+                            item.getProduct().getStock(),
                             subtotal
                     );
                 }).toList();

@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
 
 public record ProductRequest(
@@ -25,6 +26,8 @@ public record ProductRequest(
         Integer stock,
 
         String imageUrl,
+
+        List<String> images, // <-- nuevo, imágenes adicionales de la vitrina
 
         @NotNull(message = "La categoría es obligatoria")
         UUID categoryId
