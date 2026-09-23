@@ -3,6 +3,7 @@ package com.jordan.ecommerce.security;
 import com.jordan.ecommerce.entity.User;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.io.Encoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -19,10 +20,10 @@ public class JwtService {
             @Value("${jwt.secret}") String secret
     ) {
 
-//        Generate Base64-encoded secret key
-//        SecretKey key = Jwts.SIG.HS256.key().build();
-//        String secret = Encoders.BASE64.encode(key.getEncoded());
-//        System.out.println(secret);
+        // Generate Base64-encoded secret key
+        SecretKey key = Jwts.SIG.HS256.key().build();
+        String secrett = Encoders.BASE64.encode(key.getEncoded());
+        System.out.println(secrett);
 
         this.secretKey = Keys.hmacShaKeyFor(
                 Decoders.BASE64.decode(secret)
