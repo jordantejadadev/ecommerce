@@ -31,7 +31,7 @@ public class ProductController {
 
     @GetMapping
     public ResponseEntity<Page<ProductResponse>> getAllProducts(
-            @PageableDefault(page = 0, size = 12, sort = "name") Pageable pageable,
+            @PageableDefault(page = 0, size = 4, sort = "name") Pageable pageable,
             @RequestParam(required = false) UUID categoryId
     ) {
         return ResponseEntity.ok(productService.getAllProducts(pageable, categoryId));
