@@ -21,11 +21,11 @@ public class JwtService {
     ) {
 
         // Generate Base64-encoded secret key
-//        SecretKey key = Jwts.SIG.HS256.key().build();
-//        // La codificaba a Base64
-//        String secrett = Encoders.BASE64.encode(key.getEncoded());
-//        // La imprimía en la consola para que pudieras copiarla y pegarla en tu archivo de propiedades
-//        System.out.println(secrett);
+        SecretKey key = Jwts.SIG.HS256.key().build();
+        // La codificaba a Base64
+        String secrett = Encoders.BASE64.encode(key.getEncoded());
+        // La imprimía en la consola para que pudieras copiarla y pegarla en tu archivo de propiedades
+        System.out.println(secrett);
 
         this.secretKey = Keys.hmacShaKeyFor(
                 Decoders.BASE64.decode(secret)
